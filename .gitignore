@@ -1,0 +1,15 @@
+# .NET / MAUI
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.cache
+
+# IDEs
+.idea/
+.vscode/
+
+# Test outputs
+TestResults/
+coverage/

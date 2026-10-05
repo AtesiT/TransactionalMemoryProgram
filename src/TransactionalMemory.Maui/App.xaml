@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Application
+    x:Class="TransactionalMemory.Maui.App"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <Color x:Key="Canvas">#F3F6F4</Color>
+            <Color x:Key="Surface">#FFFFFF</Color>
+            <Color x:Key="Ink">#17332F</Color>
+            <Color x:Key="Muted">#6D817C</Color>
+            <Color x:Key="Line">#DEE8E3</Color>
+            <Color x:Key="Primary">#117C68</Color>
+            <Color x:Key="PrimaryDark">#0C5B4D</Color>
+            <Color x:Key="Mint">#DDF3EB</Color>
+            <Color x:Key="Coral">#D87459</Color>
+            <Color x:Key="Danger">#B54E49</Color>
+
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource Ink}" />
+            </Style>
+            <Style TargetType="Button">
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="CornerRadius" Value="16" />
+                <Setter Property="HeightRequest" Value="52" />
+                <Setter Property="Padding" Value="16,10" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
