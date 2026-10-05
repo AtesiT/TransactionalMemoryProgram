@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="TransactionalMemory.Maui.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Лаборатория STM"
+    BackgroundColor="{StaticResource Canvas}"
+    Shell.NavBarIsVisible="False">
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="22,24,22,36"
+            Spacing="18"
+            HorizontalOptions="Center"
+            MaximumWidthRequest="760">
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                <VerticalStackLayout Spacing="3" VerticalOptions="Center">
+                    <Label
+                        Text="ИНТЕРАКТИВНАЯ ЛАБОРАТОРИЯ"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        CharacterSpacing="1.4"
+                        TextColor="{StaticResource Primary}" />
+                    <Label
+                        Text="Транзакционная память"
+                        FontSize="27"
+                        FontAttributes="Bold"
+                        LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+                <Border
+                    Grid.Column="1"
+                    Padding="11,8"
+                    BackgroundColor="{StaticResource Mint}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 14"
+                    VerticalOptions="Center">
+                    <HorizontalStackLayout Spacing="7" VerticalOptions="Center">
+                        <Ellipse WidthRequest="8" HeightRequest="8" Fill="{StaticResource Primary}" />
+                        <Label Text="STM" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+
+            <Border
+                Padding="22"
+                BackgroundColor="#163B35"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 26">
+                <VerticalStackLayout Spacing="13">
+                    <Label
+                        Text="ОПТИМИСТИЧЕСКАЯ СИНХРОНИЗАЦИЯ"
+                        FontSize="10"
+                        FontAttributes="Bold"
+                        CharacterSpacing="1.2"
+                        TextColor="#91D8BC" />
+                    <Label
+                        Text="Сначала работа —\nпотом проверка."
+                        FontSize="29"
+                        FontAttributes="Bold"
+                        TextColor="White"
+                        LineHeight="1.05" />
+                    <Label
+                        Text="Потоки работают со своими локальными изменениями. При конфликте попытка отменяется и запускается заново; общая память меняется только при успешной фиксации."
+                        FontSize="14"
+                        LineHeight="1.3"
+                        TextColor="#D2E5DD" />
+                    <Grid ColumnDefinitions="*,Auto,*,Auto,*" ColumnSpacing="5" Margin="0,5,0,0">
+                        <VerticalStackLayout Spacing="3">
+                            <Label Text="01" FontSize="11" FontAttributes="Bold" TextColor="#F2B078" />
+                            <Label Text="READ" FontSize="10" FontAttributes="Bold" TextColor="White" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" Text="›" FontSize="18" TextColor="#75A99A" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="2" Spacing="3">
+                            <Label Text="02" FontSize="11" FontAttributes="Bold" TextColor="#F2B078" />
+                            <Label Text="VALIDATE" FontSize="10" FontAttributes="Bold" TextColor="White" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="3" Text="›" FontSize="18" TextColor="#75A99A" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="4" Spacing="3">
+                            <Label Text="03" FontSize="11" FontAttributes="Bold" TextColor="#F2B078" />
+                            <Label Text="COMMIT" FontSize="10" FontAttributes="Bold" TextColor="White" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Border
+                    Padding="16"
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Line}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 20">
+                    <VerticalStackLayout Spacing="9">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="СЧЁТ A" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource Muted}" />
+                            <Border Grid.Column="1" Padding="7,3" BackgroundColor="#FFF0E6" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                                <Label Text="REF 01" FontSize="9" FontAttributes="Bold" TextColor="#AD5B39" />
+                            </Border>
+                        </Grid>
+                        <Label x:Name="BalanceALabel" Text="1 000,00 ₽" FontSize="23" FontAttributes="Bold" LineBreakMode="NoWrap" />
+                        <Label x:Name="VersionALabel" Text="версия 0" FontSize="11" TextColor="{StaticResource Muted}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border
+                    Grid.Column="1"
+                    Padding="16"
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource Line}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 20">
+                    <VerticalStackLayout Spacing="9">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="СЧЁТ B" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource Muted}" />
+                            <Border Grid.Column="1" Padding="7,3" BackgroundColor="{StaticResource Mint}" StrokeThickness="0" StrokeShape="RoundRectangle 8">
+                                <Label Text="REF 02" FontSize="9" FontAttributes="Bold" TextColor="{StaticResource PrimaryDark}" />
+                            </Border>
+                        </Grid>
+                        <Label x:Name="BalanceBLabel" Text="1 000,00 ₽" FontSize="23" FontAttributes="Bold" LineBreakMode="NoWrap" />
+                        <Label x:Name="VersionBLabel" Text="версия 0" FontSize="11" TextColor="{StaticResource Muted}" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <Border
+                Padding="16,14"
+                BackgroundColor="#E8F1ED"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 17">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="ОБЩИЙ БАЛАНС" FontSize="10" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource Muted}" />
+                        <Label Text="Сумма не должна измениться" FontSize="12" TextColor="{StaticResource Muted}" />
+                    </VerticalStackLayout>
+                    <Label
+                        x:Name="TotalBalanceLabel"
+                        Grid.Column="1"
+                        Text="2 000,00 ₽"
+                        FontSize="19"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource PrimaryDark}"
+                        VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <Border
+                Padding="18"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Line}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 22">
+                <VerticalStackLayout Spacing="14">
+                    <VerticalStackLayout Spacing="3">
+                        <Label Text="ПАРАМЕТРЫ ЭКСПЕРИМЕНТА" FontSize="10" FontAttributes="Bold" CharacterSpacing="1.1" TextColor="{StaticResource Primary}" />
+                        <Label Text="Запустите один перевод или нагрузочный тест" FontSize="17" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Сумма перевода" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Muted}" />
+                            <Border Padding="10,2" BackgroundColor="#F7FAF8" Stroke="{StaticResource Line}" StrokeThickness="1" StrokeShape="RoundRectangle 13">
+                                <Entry
+                                    x:Name="AmountEntry"
+                                    Text="10"
+                                    Keyboard="Numeric"
+                                    FontSize="17"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource Ink}"
+                                    Placeholder="Например, 10"
+                                    ClearButtonVisibility="WhileEditing" />
+                            </Border>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Параллельные запросы" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Muted}" />
+                                <Label x:Name="CountValueLabel" Grid.Column="1" Text="80" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            </Grid>
+                            <Slider
+                                x:Name="CountSlider"
+                                Minimum="2"
+                                Maximum="250"
+                                Value="80"
+                                MinimumTrackColor="{StaticResource Primary}"
+                                MaximumTrackColor="{StaticResource Line}"
+                                ThumbColor="{StaticResource Primary}"
+                                ValueChanged="OnTransferCountChanged" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button
+                            x:Name="TransferABButton"
+                            Text="A  →  B"
+                            Clicked="OnTransferABClicked"
+                            BackgroundColor="#EAF3EF"
+                            TextColor="{StaticResource PrimaryDark}"
+                            FontSize="14" />
+                        <Button
+                            x:Name="TransferBAButton"
+                            Grid.Column="1"
+                            Text="B  →  A"
+                            Clicked="OnTransferBAClicked"
+                            BackgroundColor="#EAF3EF"
+                            TextColor="{StaticResource PrimaryDark}"
+                            FontSize="14" />
+                    </Grid>
+
+                    <Button
+                        x:Name="ParallelTestButton"
+                        Text="Запустить параллельный тест"
+                        Clicked="OnParallelTestClicked"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        FontSize="15" />
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="9" IsVisible="False" x:Name="BusyRow">
+                        <ActivityIndicator x:Name="BusyIndicator" IsRunning="False" Color="{StaticResource Primary}" WidthRequest="20" HeightRequest="20" />
+                        <Label Grid.Column="1" Text="Потоки выполняют транзакции…" FontSize="12" TextColor="{StaticResource Muted}" VerticalOptions="Center" />
+                    </Grid>
+                    <Button
+                        x:Name="ResetButton"
+                        Text="Сбросить эксперимент"
+                        Clicked="OnResetClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Muted}"
+                        HeightRequest="42"
+                        FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                Padding="17"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource Line}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Spacing="13">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="ХОД ВЫПОЛНЕНИЯ" FontSize="10" FontAttributes="Bold" CharacterSpacing="1.1" TextColor="{StaticResource Primary}" />
+                            <Label Text="Счётчики STM" FontSize="17" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1" Text="С НУЛЯ" FontSize="9" FontAttributes="Bold" TextColor="{StaticResource Muted}" VerticalOptions="Center" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                        <VerticalStackLayout Spacing="3">
+                            <Label Text="ЗАПРОСЫ" FontSize="9" FontAttributes="Bold" CharacterSpacing="0.5" TextColor="{StaticResource Muted}" />
+                            <Label x:Name="RequestsValueLabel" Text="0" FontSize="22" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="3">
+                            <Label Text="ПОПЫТКИ" FontSize="9" FontAttributes="Bold" CharacterSpacing="0.5" TextColor="{StaticResource Muted}" />
+                            <Label x:Name="AttemptsValueLabel" Text="0" FontSize="22" FontAttributes="Bold" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="2" Spacing="3">
+                            <Label Text="КОНФЛИКТЫ" FontSize="9" FontAttributes="Bold" CharacterSpacing="0.5" TextColor="{StaticResource Muted}" />
+                            <Label x:Name="ConflictsValueLabel" Text="0" FontSize="22" FontAttributes="Bold" TextColor="{StaticResource Coral}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <BoxView HeightRequest="1" Color="{StaticResource Line}" />
+                    <Label
+                        Text="Повторные попытки = число конфликтов: конфликтующая версия отбрасывается, а тело транзакции запускается заново."
+                        FontSize="12"
+                        LineHeight="1.25"
+                        TextColor="{StaticResource Muted}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout Spacing="10">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="ЖУРНАЛ" FontSize="10" FontAttributes="Bold" CharacterSpacing="1.1" TextColor="{StaticResource Primary}" />
+                        <Label Text="Последние события" FontSize="17" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1" Text="LIVE" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Muted}" VerticalOptions="Center" />
+                </Grid>
+                <Label x:Name="LogEmptyLabel" Text="Пока нет операций. Сделайте перевод или запустите параллельный тест." FontSize="13" LineHeight="1.25" TextColor="{StaticResource Muted}" />
+                <VerticalStackLayout x:Name="LogStack" Spacing="8" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="10">
+                <Label Text="ДВА ПОДХОДА К КОНКУРЕНТНОСТИ" FontSize="10" FontAttributes="Bold" CharacterSpacing="1.1" TextColor="{StaticResource Primary}" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="11">
+                    <Border Padding="15" BackgroundColor="#F0EBE3" StrokeThickness="0" StrokeShape="RoundRectangle 18">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="LOCK" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" TextColor="#8C6049" />
+                            <Label Text="Сначала блокировка" FontSize="14" FontAttributes="Bold" />
+                            <Label Text="Потоки ждут освобождения критической секции; требуется аккуратно управлять локами." FontSize="11" LineHeight="1.25" TextColor="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Padding="15" BackgroundColor="{StaticResource Mint}" StrokeThickness="0" StrokeShape="RoundRectangle 18">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="STM" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" TextColor="{StaticResource PrimaryDark}" />
+                            <Label Text="Сначала попытка" FontSize="14" FontAttributes="Bold" />
+                            <Label Text="Изменения локальны до commit. При конфликте — откат и повтор; под высокой нагрузкой повторы тоже стоят ресурсов." FontSize="11" LineHeight="1.25" TextColor="{StaticResource Muted}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+            </VerticalStackLayout>
+
+            <Border Padding="14" BackgroundColor="#EAEFED" StrokeThickness="0" StrokeShape="RoundRectangle 15">
+                <Label
+                    Text="Учебная модель: проверка версий и короткая внутренняя блокировка на commit. Это не lock-free-реализация и не обещание ускорения. Внутри транзакции нельзя выполнять внешний ввод-вывод: при конфликте тело может быть запущено повторно."
+                    FontSize="11"
+                    LineHeight="1.3"
+                    TextColor="{StaticResource Muted}" />
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

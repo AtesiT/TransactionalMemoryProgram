@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+         IgnorableNamespaces="uap rescap">
+  <Identity Name="com.arena.transactionalmemory" Publisher="CN=TransactionalMemory" Version="1.0.0.0" />
+  <Properties>
+    <DisplayName>Transactional Memory</DisplayName>
+    <PublisherDisplayName>Transactional Memory</PublisherDisplayName>
+    <Logo>appicon.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$">
+      <uap:VisualElements DisplayName="Transactional Memory" Description="Интерактивная лаборатория STM"
+          BackgroundColor="#123B36" Square150x150Logo="appicon.png" Square44x44Logo="appicon.png">
+        <uap:DefaultTile Wide310x150Logo="appicon.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
