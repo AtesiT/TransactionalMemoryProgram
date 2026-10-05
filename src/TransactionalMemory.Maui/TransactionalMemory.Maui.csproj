@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
     <ProjectReference Include="..\TransactionalMemory.Core\TransactionalMemory.Core.csproj" />
   </ItemGroup>
 
