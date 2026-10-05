@@ -11,7 +11,7 @@
 
 ## Запуск
 
-Требуется .NET 8 SDK. Для MAUI установите соответствующий workload и платформенные инструменты:
+Требуется .NET 10 SDK. Для MAUI установите соответствующий workload и платформенные инструменты:
 
 ```bash
 dotnet workload install maui
@@ -20,12 +20,12 @@ dotnet workload install maui
 Затем откройте `TransactionalMemoryProgram.sln` в Visual Studio с компонентом .NET MAUI либо запустите проект с подходящей целью платформы, например Android:
 
 ```bash
-dotnet build src/TransactionalMemory.Maui/TransactionalMemory.Maui.csproj -f net8.0-android
+dotnet build src/TransactionalMemory.Maui/TransactionalMemory.Maui.csproj -f net10.0-android
 dotnet build tests/TransactionalMemory.Core.Specs/TransactionalMemory.Core.Specs.csproj
 dotnet run --project tests/TransactionalMemory.Core.Specs/TransactionalMemory.Core.Specs.csproj
 ```
 
-Для Android нужен Android SDK/эмулятор; сборка iOS и Mac Catalyst требует macOS и Xcode. В Visual Studio на Windows доступна также цель `net8.0-windows10.0.19041.0`.
+Для Android нужен Android SDK/эмулятор; сборка iOS и Mac Catalyst требует macOS и Xcode. В Visual Studio на Windows доступна также цель `net10.0-windows10.0.19041.0`.
 
 ## Модель транзакции
 
