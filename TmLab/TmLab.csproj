@@ -1,0 +1,86 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ДВА ПЕРЕКЛЮЧАТЕЛЯ. Менять только здесь, больше нигде ничего править не нужно.
+
+    WindowsOnly = true  — собирается только Windows-версия. Visual Studio не
+                          просит устанавливать нагрузки maui-android / maui-ios
+                          и Android SDK с эмулятором: это экономит несколько
+                          гигабайт диска. Верните false, когда снова понадобятся
+                          Android, iOS и Mac Catalyst.
+
+    DotNetVersion       — версия .NET, установленная на компьютере.
+                          Список SDK печатает команда dotnet с ключом list-sdks,
+                          список нагрузок — dotnet workload list. Ставить сюда
+                          нужно ту версию, для которой в списке нагрузок есть
+                          maui-windows (или maui). Возможны 10.0, 9.0 или 8.0.
+                          Если приложение просит «install or update .NET» —
+                          значит, здесь указана версия, которой на компьютере нет.
+  -->
+  <PropertyGroup>
+    <WindowsOnly Condition="'$(WindowsOnly)' == ''">true</WindowsOnly>
+    <DotNetVersion Condition="'$(DotNetVersion)' == ''">10.0</DotNetVersion>
+
+    <TargetFrameworks Condition="'$(WindowsOnly)' == 'true' and $([MSBuild]::IsOSPlatform('windows'))">net$(DotNetVersion)-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(WindowsOnly)' == 'true' and !$([MSBuild]::IsOSPlatform('windows'))">net$(DotNetVersion)-android;net$(DotNetVersion)-ios;net$(DotNetVersion)-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="'$(WindowsOnly)' != 'true'">net$(DotNetVersion)-android;net$(DotNetVersion)-ios;net$(DotNetVersion)-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="'$(WindowsOnly)' != 'true' and $([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net$(DotNetVersion)-windows10.0.19041.0</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TmLab</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <ApplicationTitle>Транзакционная память</ApplicationTitle>
+    <ApplicationId>com.example.tmlab</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+
+    <!--
+      Windows собирается без упаковки в MSIX — так же, как в новом шаблоне MAUI.
+      Поэтому не нужны: режим разработчика, сертификат подписи и отдельно
+      установленная среда Windows App Runtime — MAUI в этом режиме сама включает
+      WindowsAppSDKSelfContained и кладёт среду рядом с программой.
+      Package.appxmanifest при этом не удаляется: он понадобится, если проект
+      когда-нибудь будет публиковаться в Store (тогда здесь ставится MSIX).
+    -->
+    <WindowsPackageType>None</WindowsPackageType>
+
+    <!--
+      Если при запуске всё-таки появится окно «You must install or update .NET
+      to run this application», раскомментируйте строку ниже: приложение понесёт
+      среду .NET с собой и перестанет зависеть от установленных версий.
+      Одноразовая загрузка в пакетах NuGet — около 60 МБ. Сборка при этом
+      работает на любой установленной версии .NET подходящего диапазона.
+
+      <SelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">true</SelfContained>
+    -->
+
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">17.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <UseWinUI>true</UseWinUI>
+    <ApplicationManifest>Platforms\Windows\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Значки и заставка приложения -->
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0b1220" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0b1220" BaseSize="128,128" />
+
+    <MauiImage Include="Resources\Images\*" />
+    <MauiFont Include="Resources\Fonts\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+  </ItemGroup>
+
+</Project>

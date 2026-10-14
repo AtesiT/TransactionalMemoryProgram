@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TmLab.MainPage"
+             Title="Транзакционная память"
+             BackgroundColor="#070b16"
+             Padding="10">
+
+  <!--
+    Вся страница лежит в ScrollView: если окно маленькое, до любой части экрана
+    можно дотянуться прокруткой. А при широком окне раскладка становится
+    двухколоночной (см. ApplyAdaptiveLayout в code-behind) — тогда прокрутка
+    вообще не нужна: слева настройки и показатели, справа схема и панели.
+
+    Секции (DemoSwitchPanel, ParamsBlock, SchemeSection, MetricsPanel,
+    InvariantPanel, PanelSwitchPanel, PanelHost, ControlsBlock) при смене
+    раскладки переезжают между LeftStack и RightStack — это одни и те же
+    элементы, поэтому их состояние сохраняется.
+  -->
+  <ScrollView x:Name="PageScroll" VerticalScrollBarVisibility="Default">
+    <Grid x:Name="PageRoot" ColumnSpacing="10">
+      <VerticalStackLayout x:Name="LeftStack" Spacing="8">
+
+        <!-- ===== 1. Какой пример показываем ===== -->
+        <Grid x:Name="DemoSwitchPanel" ColumnDefinitions="*,*" ColumnSpacing="8">
+          <Button x:Name="Demo1Button"
+                  Text="Пример 1 · зачисление"
+                  Clicked="OnDemo1Clicked"
+                  BackgroundColor="#2b6cff" TextColor="White"
+                  FontSize="13" CornerRadius="8" />
+          <Button x:Name="Demo2Button" Grid.Column="1"
+                  Text="Пример 2 · переводы"
+                  Clicked="OnDemo2Clicked"
+                  BackgroundColor="#16213c" TextColor="#8fa3c4"
+                  FontSize="13" CornerRadius="8" />
+        </Grid>
+
+        <!-- ===== 2. Параметры запуска (свёрнуты) ===== -->
+        <VerticalStackLayout x:Name="ParamsBlock" Spacing="6">
+          <Button x:Name="ParamsToggleButton"
+                  Text="▾ Параметры запуска"
+                  Clicked="OnParamsToggleClicked"
+                  BackgroundColor="#16213c" TextColor="#4ea1ff"
+                  FontSize="13" CornerRadius="8" />
+
+          <ScrollView x:Name="ParamsPanel" MaximumHeightRequest="300">
+            <VerticalStackLayout Spacing="8">
+
+              <Label Text="Сценарий синхронизации" TextColor="#8fa3c4" FontSize="12" />
+              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                <Button x:Name="TechButtonA" Clicked="OnTechniqueAClicked"
+                        BackgroundColor="#2b6cff" TextColor="White" FontSize="12" CornerRadius="8" />
+                <Button x:Name="TechButtonB" Grid.Column="1" Clicked="OnTechniqueBClicked"
+                        BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="12" CornerRadius="8" />
+                <Button x:Name="TechButtonC" Grid.Column="2" Clicked="OnTechniqueCClicked"
+                        BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="12" CornerRadius="8" />
+              </Grid>
+              <Label x:Name="TechniqueHintLabel" TextColor="#6d80a3" FontSize="11" />
+
+              <Label Text="Темп показа" TextColor="#8fa3c4" FontSize="12" />
+              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                <Button x:Name="TempoShowButton" Text="показ" Clicked="OnTempoShowClicked"
+                        BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="12" CornerRadius="8" />
+                <Button x:Name="TempoNormalButton" Grid.Column="1" Text="обычный" Clicked="OnTempoNormalClicked"
+                        BackgroundColor="#2b6cff" TextColor="White" FontSize="12" CornerRadius="8" />
+                <Button x:Name="TempoLoadButton" Grid.Column="2" Text="нагрузка" Clicked="OnTempoLoadClicked"
+                        BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="12" CornerRadius="8" />
+              </Grid>
+              <Label Text="показ — медленно, обычный — средний темп, нагрузка — много операций в секунду"
+                     TextColor="#6d80a3" FontSize="11" />
+
+              <Label x:Name="GapLabel" Text="Скорость: обычная" TextColor="#8fa3c4" FontSize="12" />
+              <Slider x:Name="GapSlider" Minimum="0" Maximum="1500" Value="400"
+                      MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
+                      ValueChanged="OnGapChanged" />
+
+              <Label x:Name="WorkLabel" Text="Работа в транзакции: 600 мкс" TextColor="#8fa3c4" FontSize="12" />
+              <Slider x:Name="WorkSlider" Minimum="0" Maximum="2000" Value="600"
+                      MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
+                      ValueChanged="OnWorkChanged" />
+
+              <Label x:Name="WorkersLabel" Text="Потоков: 8" TextColor="#8fa3c4" FontSize="12" />
+              <Slider x:Name="WorkersSlider" Minimum="2" Maximum="16" Value="8"
+                      MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
+                      ValueChanged="OnWorkersChanged" />
+
+              <HorizontalStackLayout Spacing="8">
+                <Switch x:Name="BoostSwitch" IsToggled="True" OnColor="#2b6cff" />
+                <Label Text="Агрессивные конфликты (разброс времени операции)"
+                       TextColor="#8fa3c4" FontSize="12" VerticalOptions="Center" />
+              </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+          </ScrollView>
+        </VerticalStackLayout>
+
+        <!-- ===== 3. Схема: главный элемент. Высота задаётся в code-behind ===== -->
+        <Border x:Name="SchemeSection"
+                Stroke="#22304f" StrokeThickness="1"
+                BackgroundColor="#111a30" StrokeShape="RoundRectangle 12" Padding="8">
+          <Grid RowDefinitions="Auto,*,Auto">
+            <Label x:Name="NetTitleLabel" Text="Зачисление на счёт"
+                   TextColor="#8fa3c4" FontSize="12" />
+            <GraphicsView x:Name="NetworkView" Grid.Row="1" />
+            <Label x:Name="NetHintLabel" Grid.Row="2" TextColor="#6d80a3" FontSize="11" />
+          </Grid>
+        </Border>
+
+        <!-- ===== 4. Показатели ===== -->
+        <Grid x:Name="MetricsPanel" ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto"
+              ColumnSpacing="6" RowSpacing="4">
+          <VerticalStackLayout>
+            <Label Text="Операций" TextColor="#8fa3c4" FontSize="10" />
+            <Label x:Name="OpsLabel" Text="0" TextColor="#e6ecf7" FontSize="15" />
+          </VerticalStackLayout>
+          <VerticalStackLayout Grid.Column="1">
+            <Label Text="Коммитов" TextColor="#8fa3c4" FontSize="10" />
+            <Label x:Name="CommitsLabel" Text="0" TextColor="#e6ecf7" FontSize="15" />
+          </VerticalStackLayout>
+          <VerticalStackLayout Grid.Column="2">
+            <Label Text="Откатов" TextColor="#8fa3c4" FontSize="10" />
+            <Label x:Name="RetriesLabel" Text="0" TextColor="#ffb020" FontSize="15" />
+          </VerticalStackLayout>
+
+          <VerticalStackLayout Grid.Row="1">
+            <Label x:Name="RefusalCaption" Text="Отказов" TextColor="#8fa3c4" FontSize="10" />
+            <Label x:Name="RefusalsLabel" Text="0" TextColor="#e6ecf7" FontSize="15" />
+          </VerticalStackLayout>
+          <VerticalStackLayout Grid.Row="1" Grid.Column="1">
+            <Label Text="Операций/сек" TextColor="#8fa3c4" FontSize="10" />
+            <Label x:Name="RateLabel" Text="0" TextColor="#e6ecf7" FontSize="15" />
+          </VerticalStackLayout>
+          <VerticalStackLayout Grid.Row="1" Grid.Column="2">
+            <Label Text="Эффективность" TextColor="#8fa3c4" FontSize="10" />
+            <Label x:Name="EfficiencyLabel" Text="—" TextColor="#e6ecf7" FontSize="15" />
+          </VerticalStackLayout>
+        </Grid>
+
+        <!-- ===== 5. Инвариант ===== -->
+        <Border x:Name="InvariantPanel"
+                Stroke="#22304f" StrokeThickness="1"
+                BackgroundColor="#0c1224" StrokeShape="RoundRectangle 10" Padding="10,6">
+          <Label x:Name="InvariantLabel" Text="ожидание запуска"
+                 TextColor="#8fa3c4" FontSize="14" />
+        </Border>
+
+        <!-- ===== 6. Что показываем ниже: потоки / таймлайн / журнал ===== -->
+        <Grid x:Name="PanelSwitchPanel" ColumnDefinitions="*,*,*" ColumnSpacing="6">
+          <Button x:Name="PanelWorkersButton" Text="Потоки" Clicked="OnPanelWorkersClicked"
+                  BackgroundColor="#2b6cff" TextColor="White" FontSize="12" CornerRadius="8" />
+          <Button x:Name="PanelTimelineButton" Grid.Column="1" Text="Таймлайн" Clicked="OnPanelTimelineClicked"
+                  BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="12" CornerRadius="8" />
+          <Button x:Name="PanelJournalButton" Grid.Column="2" Text="Журнал" Clicked="OnPanelJournalClicked"
+                  BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="12" CornerRadius="8" />
+        </Grid>
+
+        <!-- ===== 7. Содержимое выбранной панели. Высота задаётся в code-behind ===== -->
+        <Grid x:Name="PanelHost">
+
+          <ScrollView x:Name="WorkersPanel">
+            <Grid x:Name="WorkersGrid" ColumnDefinitions="*,*" ColumnSpacing="6" RowSpacing="6" />
+          </ScrollView>
+
+          <Border x:Name="TimelinePanel" IsVisible="False"
+                  Stroke="#22304f" StrokeThickness="1"
+                  BackgroundColor="#111a30" StrokeShape="RoundRectangle 12" Padding="6">
+            <GraphicsView x:Name="TimelineView" />
+          </Border>
+
+          <ScrollView x:Name="JournalPanel" IsVisible="False">
+            <Label x:Name="JournalLabel" TextColor="#9fb2d4" FontSize="11"
+                   FontFamily="{OnPlatform Android=monospace, iOS=Menlo, MacCatalyst=Menlo, Default=Consolas}" />
+          </ScrollView>
+
+        </Grid>
+
+        <!-- ===== 8. Управление ===== -->
+        <VerticalStackLayout x:Name="ControlsBlock" Spacing="6">
+          <Label x:Name="StatusLabel" Text="нажмите «Запустить»"
+                 TextColor="#6d80a3" FontSize="11" />
+          <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+            <Button x:Name="StartButton" Text="▶ Запустить" Clicked="OnStartClicked"
+                    BackgroundColor="#2b6cff" TextColor="White" FontSize="13" CornerRadius="10" />
+            <Button x:Name="PauseButton" Grid.Column="1" Text="⏸ Пауза" Clicked="OnPauseClicked"
+                    BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="13" CornerRadius="10" />
+            <Button x:Name="ResetButton" Grid.Column="2" Text="⟲ Сброс" Clicked="OnResetClicked"
+                    BackgroundColor="#16213c" TextColor="#8fa3c4" FontSize="13" CornerRadius="10" />
+          </Grid>
+        </VerticalStackLayout>
+
+      </VerticalStackLayout>
+
+      <!-- В широком окне сюда переезжают схема, переключатель панелей и панель -->
+      <VerticalStackLayout x:Name="RightStack" Spacing="8" IsVisible="False" />
+
+    </Grid>
+  </ScrollView>
+</ContentPage>

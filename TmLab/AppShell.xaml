@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:local="clr-namespace:TmLab"
+       x:Class="TmLab.AppShell"
+       Shell.BackgroundColor="#0c1224"
+       Shell.ForegroundColor="#e6ecf7"
+       Shell.TitleColor="#e6ecf7"
+       FlyoutBehavior="Disabled">
+
+  <ShellContent Title="Лабораторная работа"
+                ContentTemplate="{DataTemplate local:MainPage}"
+                Route="main" />
+
+</Shell>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+  <!-- Тёмная тема приложения -->
+  <Color x:Key="PageBackground">#070b16</Color>
+  <Color x:Key="CardBackground">#0c1224</Color>
+  <Color x:Key="PanelBackground">#111a30</Color>
+  <Color x:Key="BorderColor">#22304f</Color>
+  <Color x:Key="Accent">#2b6cff</Color>
+  <Color x:Key="TextPrimary">#e6ecf7</Color>
+  <Color x:Key="TextMuted">#8fa3c4</Color>
+  <Color x:Key="Success">#35d07f</Color>
+  <Color x:Key="Warning">#ffb020</Color>
+  <Color x:Key="Danger">#ff5d6c</Color>
+
+  <Style TargetType="Label">
+    <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+
+  <Style TargetType="Button">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="4,0" />
+    <Setter Property="MinimumHeightRequest" Value="36" />
+  </Style>
+
+</ResourceDictionary>
