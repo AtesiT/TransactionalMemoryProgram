@@ -49,8 +49,11 @@ public enum RefusalReason
     /// <summary>На счёте отправителя не хватает средств для перевода.</summary>
     InsufficientFunds,
 
-    /// <summary>Сумма перевода превышает разрешённый потолок.</summary>
-    OverLimit
+    /// <summary>Сумма перевода или пополнения превышает разрешённый потолок.</summary>
+    OverLimit,
+
+    /// <summary>Пополнение вывело бы баланс счёта за лимит.</summary>
+    OverBalanceCap
 }
 
 /// <summary>Одно событие потока: неизменяемая структура, безопасна для передачи между потоками.</summary>

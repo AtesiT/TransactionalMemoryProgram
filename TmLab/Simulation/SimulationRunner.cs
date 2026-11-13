@@ -27,6 +27,7 @@ public sealed class SimulationRunner
     private int _retries;
     private int _refusals;
     private int _waits;
+    private int _deposited;      // сумма всех зафиксированных пополнений (Пример 1)
 
     public SimulationRunner(SimulationOptions options)
     {
@@ -58,6 +59,9 @@ public sealed class SimulationRunner
     /// <summary>Сколько раз поток ждал освобождения счёта.</summary>
     public int Waits => Volatile.Read(ref _waits);
 
+    /// <summary>Сумма всех зафиксированных пополнений (для проверки инварианта Примера 1).</summary>
+    public int Deposited => Volatile.Read(ref _deposited);
+
     public bool TryDequeueEvent(out WorkerEvent workerEvent) => _events.TryDequeue(out workerEvent);
 
     // -------------------------------------------------------------------------
@@ -68,7 +72,7 @@ public sealed class SimulationRunner
     {
         Stop();
 
-        _operations = _commits = _retries = _refusals = _waits = 0;
+        _operations = _commits = _retries = _refusals = _waits = _deposited = 0;
         while (_events.TryDequeue(out _)) { }
 
         _clock.Restart();
@@ -101,7 +105,7 @@ public sealed class SimulationRunner
     public void Reset()
     {
         Stop();
-        _operations = _commits = _retries = _refusals = _waits = 0;
+        _operations = _commits = _retries = _refusals = _waits = _deposited = 0;
         while (_events.TryDequeue(out _)) { }
     }
 
@@ -132,7 +136,7 @@ public sealed class SimulationRunner
                 }
 
                 if (Options.Demo == 1)
-                    DepositOnce(workerId, token);
+                    DepositOnce(workerId, random, token);
                 else
                     TransferOnce(workerId, random, token);
 
@@ -181,9 +185,15 @@ public sealed class SimulationRunner
     {
         Interlocked.Increment(ref _operations);
         if (kind == WorkerEventKind.Commit)
+        {
             Interlocked.Increment(ref _commits);
+            if (Options.Demo == 1)
+                Interlocked.Add(ref _deposited, amount);   // пополнение зафиксировано
+        }
         else
+        {
             Interlocked.Increment(ref _refusals);
+        }
 
         Emit(kind, workerId, from, to, amount, attempt, reason);
     }
@@ -192,12 +202,20 @@ public sealed class SimulationRunner
     // Пример 1: зачисление на счёт
     // -------------------------------------------------------------------------
 
-    private void DepositOnce(int workerId, CancellationToken token)
+    private void DepositOnce(int workerId, Random random, CancellationToken token)
     {
         var account = Bank.Accounts[0];
-        int amount = Options.Amount;
+        int amount = Options.MinDeposit + random.Next(Options.MaxDeposit - Options.MinDeposit + 1);
 
         Emit(WorkerEventKind.OpBegin, workerId, 0, 0, amount);
+
+        // Потолок пополнения — бизнес-правило, оно не зависит от состояния счёта,
+        // поэтому проверяется до операции: сумма больше потолка отклоняется сразу.
+        if (amount > Options.DepositLimit)
+        {
+            CountOperation(WorkerEventKind.Refused, workerId, 0, 0, amount, 1, RefusalReason.OverLimit);
+            return;
+        }
 
         switch (Options.Technique)
         {
@@ -208,6 +226,14 @@ public sealed class SimulationRunner
                 int current = account.Balance;
                 Emit(WorkerEventKind.Read, workerId, 0, 0, amount);
                 HeavyWork();
+
+                if (current + amount > Options.BalanceCap)
+                {
+                    CountOperation(WorkerEventKind.Refused, workerId, 0, 0, amount, 1,
+                        RefusalReason.OverBalanceCap);
+                    return;
+                }
+
                 account.SetBalanceUnsafe(current + amount);
                 CountOperation(WorkerEventKind.Commit, workerId, 0, 0, amount, 1);
                 break;
@@ -222,6 +248,14 @@ public sealed class SimulationRunner
                 {
                     int current = account.Balance;
                     HeavyWork();
+
+                    if (current + amount > Options.BalanceCap)
+                    {
+                        CountOperation(WorkerEventKind.Refused, workerId, 0, 0, amount, 1,
+                            RefusalReason.OverBalanceCap);
+                        return;
+                    }
+
                     account.SetBalance(current + amount);
                     Emit(WorkerEventKind.Write, workerId, 0, 0, current + amount);
                 }
@@ -244,6 +278,15 @@ public sealed class SimulationRunner
 
                     // чтение попадает и в таймлайн, и в журнал
                     Emit(WorkerEventKind.Read, workerId, 0, 0, amount);
+
+                    // Лимит баланса проверяется на каждой попытке: баланс мог
+                    // вырасти, пока предыдущая попытка откатывалась.
+                    if (current + amount > Options.BalanceCap)
+                    {
+                        CountOperation(WorkerEventKind.Refused, workerId, 0, 0, amount, 1,
+                            RefusalReason.OverBalanceCap);
+                        return;
+                    }
 
                     int next = current + amount;
                     HeavyWork();

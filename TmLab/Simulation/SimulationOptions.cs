@@ -31,8 +31,23 @@ public sealed class SimulationOptions
     /// <summary>Общая сумма денег в демонстрации (делится между счетами поровну).</summary>
     public int Total { get; set; } = 100_000;
 
-    /// <summary>Сумма зачисления в Примере 1.</summary>
-    public int Amount { get; set; } = 1_000;
+    /// <summary>Минимальная сумма пополнения в Примере 1.</summary>
+    public int MinDeposit { get; set; } = 100;
+
+    /// <summary>Максимальная сумма пополнения, которую генерирует поток в Примере 1.</summary>
+    public int MaxDeposit { get; set; } = 10_000;
+
+    /// <summary>
+    /// Потолок пополнения: сумма больше этого значения отклоняется сразу, без
+    /// операции (бизнес-правило банка). Меняется на ходу ползунком.
+    /// </summary>
+    public int DepositLimit { get; set; } = 5_000;
+
+    /// <summary>
+    /// Лимит баланса счёта: пополнение, из-за которого баланс вышел бы за этот
+    /// предел, отклоняется. Меняется на ходу ползунком.
+    /// </summary>
+    public int BalanceCap { get; set; } = 200_000;
 
     /// <summary>Минимальная сумма перевода в Примере 2.</summary>
     public int MinTransfer { get; set; } = 100;

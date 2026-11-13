@@ -206,10 +206,7 @@ public partial class MainPage : ContentPage
         CommitsLabel.Text = _runner.Commits.ToString("N0");
         RetriesLabel.Text = _runner.Retries.ToString("N0");
 
-        if (_demo == 2)
-            RefusalsLabel.Text = _runner.Refusals.ToString("N0");
-        else
-            RefusalsLabel.Text = _runner.Waits.ToString("N0");    // в зачислении ожиданий больше
+        RefusalsLabel.Text = _runner.Refusals.ToString("N0");
 
         UpdateRate();
         UpdateEfficiency();
@@ -384,8 +381,22 @@ public partial class MainPage : ContentPage
                 if (workerEvent.Reason == RefusalReason.OverLimit)
                 {
                     SetWorkerState(worker, "превышен потолок");
-                    int limit = _runner?.Options.TransferLimit ?? 0;
-                    Log(worker, $"#{worker}  отказ: перевод {workerEvent.Amount:N0} ₽ превышает потолок {limit:N0} ₽", true);
+                    if (_demo == 1)
+                    {
+                        int limit = _runner?.Options.DepositLimit ?? 0;
+                        Log(worker, $"#{worker}  отказ: пополнение {workerEvent.Amount:N0} ₽ превышает потолок {limit:N0} ₽", true);
+                    }
+                    else
+                    {
+                        int limit = _runner?.Options.TransferLimit ?? 0;
+                        Log(worker, $"#{worker}  отказ: перевод {workerEvent.Amount:N0} ₽ превышает потолок {limit:N0} ₽", true);
+                    }
+                }
+                else if (workerEvent.Reason == RefusalReason.OverBalanceCap)
+                {
+                    SetWorkerState(worker, "превышен лимит");
+                    int cap = _runner?.Options.BalanceCap ?? 0;
+                    Log(worker, $"#{worker}  отказ: пополнение {workerEvent.Amount:N0} ₽ вышло за лимит баланса {cap:N0} ₽", true);
                 }
                 else
                 {
@@ -497,7 +508,7 @@ public partial class MainPage : ContentPage
 
         int total = _runner.Bank.Total;
         int expected = _demo == 1
-            ? _runner.Bank.StartTotal + _runner.Options.Amount * _runner.Operations
+            ? _runner.Bank.StartTotal + _runner.Deposited
             : _runner.Bank.StartTotal;
 
         if (total == expected)
@@ -697,8 +708,9 @@ public partial class MainPage : ContentPage
             ? "Кружки по краям — потоки. Монетка долетает до счёта только тогда, когда CompareExchange прошёл; при конфликте монетка гаснет и операция повторяется."
             : "Зелёная монетка долетела — транзакция зафиксирована. Красная погасла на полпути — конфликт версий: транзакция откатилась и будет переиграна.";
 
-        RefusalCaption.Text = first ? "Ожиданий" : "Отказов";
+        RefusalCaption.Text = "Отказов";
         LimitBlock.IsVisible = !first;      // потолок перевода нужен только в Примере 2
+        DepositLimitBlock.IsVisible = first; // ограничения пополнения — только в Примере 1
 
         _network.IsDepositDemo = first;
         _network.Caption = string.Empty;
@@ -831,6 +843,28 @@ public partial class MainPage : ContentPage
             _runner.Options.TransferLimit = value;   // потолок действует сразу, без перезапуска
     }
 
+    private void OnDepositLimitChanged(object? sender, ValueChangedEventArgs e)
+    {
+        int value = (int)Math.Round(e.NewValue);
+
+        if (DepositLimitLabel is not null)
+            DepositLimitLabel.Text = $"Потолок пополнения: {value:N0} ₽ (больше — отказ)";
+
+        if (_runner is not null)
+            _runner.Options.DepositLimit = value;    // действует сразу, без перезапуска
+    }
+
+    private void OnBalanceCapChanged(object? sender, ValueChangedEventArgs e)
+    {
+        int value = (int)Math.Round(e.NewValue);
+
+        if (BalanceCapLabel is not null)
+            BalanceCapLabel.Text = $"Лимит баланса счёта: {value:N0} ₽";
+
+        if (_runner is not null)
+            _runner.Options.BalanceCap = value;      // действует сразу, без перезапуска
+    }
+
     private void OnWorkChanged(object? sender, ValueChangedEventArgs e)
     {
         int value = (int)Math.Round(e.NewValue);
@@ -938,7 +972,10 @@ public partial class MainPage : ContentPage
             Workers = _workers,
             Accounts = _demo == 1 ? 1 : 4,
             Total = _demo == 1 ? 100_000 : 1_000_000,
-            Amount = 1_000,
+            MinDeposit = 100,
+            MaxDeposit = 10_000,
+            DepositLimit = (int)Math.Round(DepositLimitSlider.Value),
+            BalanceCap = (int)Math.Round(BalanceCapSlider.Value),
             MinTransfer = 100,
             MaxTransfer = 30_000,
             TransferLimit = (int)Math.Round(LimitSlider.Value),
@@ -956,7 +993,9 @@ public partial class MainPage : ContentPage
         PauseButton.Text = "⏸ Пауза";
         StatusLabel.Text = $"{options.Workers} потоков · {DescribeTechnique(options.Technique)} · " +
                            $"пауза {options.GapMs} мс · работа {options.WorkMicroseconds} мкс" +
-                           (options.Demo == 2 ? $" · потолок {options.TransferLimit:N0} ₽" : string.Empty);
+                           (options.Demo == 2
+                               ? $" · потолок перевода {options.TransferLimit:N0} ₽"
+                               : $" · потолок пополнения {options.DepositLimit:N0} ₽ · лимит баланса {options.BalanceCap:N0} ₽");
         UpdateInvariant();
     }
 

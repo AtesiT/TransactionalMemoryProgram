@@ -95,6 +95,22 @@
                        TextColor="#6d80a3" FontSize="11" />
               </VerticalStackLayout>
 
+              <!-- ограничения пополнения: только для Примера 1 (видимость — в ApplyDemoUi) -->
+              <VerticalStackLayout x:Name="DepositLimitBlock" Spacing="0">
+                <Label x:Name="DepositLimitLabel" Text="Потолок пополнения: 5 000 ₽"
+                       TextColor="#8fa3c4" FontSize="12" />
+                <Slider x:Name="DepositLimitSlider" Minimum="1000" Maximum="20000" Value="5000"
+                        MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
+                        ValueChanged="OnDepositLimitChanged" />
+                <Label x:Name="BalanceCapLabel" Text="Лимит баланса счёта: 200 000 ₽"
+                       TextColor="#8fa3c4" FontSize="12" />
+                <Slider x:Name="BalanceCapSlider" Minimum="120000" Maximum="500000" Value="200000"
+                        MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
+                        ValueChanged="OnBalanceCapChanged" />
+                <Label Text="пополнения генерируются от 100 до 10 000 ₽; больше потолка или лимита баланса — отказ"
+                       TextColor="#6d80a3" FontSize="11" />
+              </VerticalStackLayout>
+
               <HorizontalStackLayout Spacing="8">
                 <Switch x:Name="BoostSwitch" IsToggled="True" OnColor="#2b6cff" />
                 <Label Text="Агрессивные конфликты (разброс времени операции)"
