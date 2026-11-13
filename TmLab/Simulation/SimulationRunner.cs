@@ -205,7 +205,12 @@ public sealed class SimulationRunner
     private void DepositOnce(int workerId, Random random, CancellationToken token)
     {
         var account = Bank.Accounts[0];
-        int amount = Options.MinDeposit + random.Next(Options.MaxDeposit - Options.MinDeposit + 1);
+        // «Аккуратные клиенты» не пытаются превысить потолок: сумма генерируется
+        // сразу в его пределах, и проверка ниже никогда не срабатывает.
+        int depositMax = Options.RespectCeiling
+            ? Math.Min(Options.MaxDeposit, Options.DepositLimit)
+            : Options.MaxDeposit;
+        int amount = Options.MinDeposit + random.Next(depositMax - Options.MinDeposit + 1);
 
         Emit(WorkerEventKind.OpBegin, workerId, 0, 0, amount);
 
@@ -320,7 +325,12 @@ public sealed class SimulationRunner
         if (from == to)
             to = (to + 1) % count;
 
-        int amount = Options.MinTransfer + random.Next(Options.MaxTransfer - Options.MinTransfer + 1);
+        // «Аккуратные клиенты» не пытаются превысить потолок: сумма генерируется
+        // сразу в его пределах, и проверка ниже никогда не срабатывает.
+        int transferMax = Options.RespectCeiling
+            ? Math.Min(Options.MaxTransfer, Options.TransferLimit)
+            : Options.MaxTransfer;
+        int amount = Options.MinTransfer + random.Next(transferMax - Options.MinTransfer + 1);
 
         Emit(WorkerEventKind.OpBegin, workerId, from, to, amount);
 

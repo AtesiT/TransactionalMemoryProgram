@@ -43,7 +43,9 @@
                   BackgroundColor="#16213c" TextColor="#4ea1ff"
                   FontSize="13" CornerRadius="8" />
 
-          <ScrollView x:Name="ParamsPanel" MaximumHeightRequest="300">
+          <!-- высота панели задаётся в ApplyAdaptiveLayout: она занимает
+               оставшееся место в левой колонке, чтобы не скроллиться внутри себя -->
+          <ScrollView x:Name="ParamsPanel">
             <VerticalStackLayout Spacing="8">
 
               <Label Text="Сценарий синхронизации" TextColor="#8fa3c4" FontSize="12" />
@@ -70,7 +72,7 @@
                      TextColor="#6d80a3" FontSize="11" />
 
               <Label x:Name="GapLabel" Text="Скорость: обычная" TextColor="#8fa3c4" FontSize="12" />
-              <Slider x:Name="GapSlider" Minimum="0" Maximum="1500" Value="400"
+              <Slider x:Name="GapSlider" Minimum="0" Maximum="3000" Value="400"
                       MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
                       ValueChanged="OnGapChanged" />
 
@@ -83,6 +85,12 @@
               <Slider x:Name="WorkersSlider" Minimum="2" Maximum="16" Value="8"
                       MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
                       ValueChanged="OnWorkersChanged" />
+
+              <Label x:Name="StartAmountLabel" Text="Стартовая сумма на счёте: 100 000 ₽"
+                     TextColor="#8fa3c4" FontSize="12" />
+              <Slider x:Name="StartAmountSlider" Minimum="10000" Maximum="500000" Value="100000"
+                      MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
+                      ValueChanged="OnStartAmountChanged" />
 
               <!-- потолок перевода: только для Примера 2 (видимость — в ApplyDemoUi) -->
               <VerticalStackLayout x:Name="LimitBlock" Spacing="0" IsVisible="False">
@@ -110,6 +118,12 @@
                 <Label Text="пополнения генерируются от 100 до 10 000 ₽; больше потолка или лимита баланса — отказ"
                        TextColor="#6d80a3" FontSize="11" />
               </VerticalStackLayout>
+
+              <HorizontalStackLayout Spacing="8">
+                <Switch x:Name="CeilingSwitch" OnColor="#2b6cff" Toggled="OnCeilingToggled" />
+                <Label Text="Клиенты не превышают потолок (суммы генерируются в его пределах)"
+                       TextColor="#8fa3c4" FontSize="12" VerticalOptions="Center" />
+              </HorizontalStackLayout>
 
               <HorizontalStackLayout Spacing="8">
                 <Switch x:Name="BoostSwitch" IsToggled="True" OnColor="#2b6cff" />

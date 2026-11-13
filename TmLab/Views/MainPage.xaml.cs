@@ -134,6 +134,11 @@ public partial class MainPage : ContentPage
         SchemeSection.HeightRequest = Math.Clamp(height * (wide ? 0.46 : 0.36), 200, 520);
         PanelHost.HeightRequest = Math.Clamp(height * (wide ? 0.30 : 0.22), 130, 280);
 
+        // Панель параметров занимает оставшееся место в левой колонке: пока внизу
+        // есть свободное место, скроллить её не приходится. В узком окне (телефон)
+        // ограничения нет — там скроллится вся страница целиком.
+        ParamsPanel.MaximumHeightRequest = wide ? Math.Clamp(height - 390, 240, 1200) : -1;
+
         if (wide == _wideLayout && PageRoot.ColumnDefinitions.Count > 0)
             return;                                   // колонки уже расставлены
 
@@ -157,7 +162,7 @@ public partial class MainPage : ContentPage
         LeftStack.Children.Clear();
         RightStack.Children.Clear();
         RightStack.IsVisible = wide;
-        LeftStack.WidthRequest = wide ? 380 : -1;
+        LeftStack.WidthRequest = wide ? 460 : -1;
 
         View[] left = wide
             ? new View[] { DemoSwitchPanel, ParamsBlock, MetricsPanel, InvariantPanel, ControlsBlock }
@@ -198,7 +203,12 @@ public partial class MainPage : ContentPage
     private void OnTimerTick(object? sender, EventArgs e)
     {
         if (_runner is null)
+        {
+            // Раннер не запущен (до первого запуска или после сброса): схему всё
+            // равно перерисовываем, иначе после смены примера видна старая картинка.
+            NetworkView.Invalidate();
             return;
+        }
 
         DrainEvents();
 
@@ -705,12 +715,16 @@ public partial class MainPage : ContentPage
             : "Переводы между счетами (линия = попытка транзакции)";
 
         NetHintLabel.Text = first
-            ? "Кружки по краям — потоки. Монетка долетает до счёта только тогда, когда CompareExchange прошёл; при конфликте монетка гаснет и операция повторяется."
-            : "Зелёная монетка долетела — транзакция зафиксирована. Красная погасла на полпути — конфликт версий: транзакция откатилась и будет переиграна.";
+            ? "Кружки по краям — потоки. Монетка долетает до счёта только тогда, когда CompareExchange прошёл; при конфликте монетка гаснет и операция повторяется. Серая не стартовала — отказ: превышен потолок пополнения или лимит баланса."
+            : "Зелёная монетка долетела — транзакция зафиксирована. Красная погасла на полпути — конфликт версий: транзакция откатилась и будет переиграна. Серая не стартовала — отказ: не хватает средств или превышен потолок.";
 
         RefusalCaption.Text = "Отказов";
         LimitBlock.IsVisible = !first;      // потолок перевода нужен только в Примере 2
         DepositLimitBlock.IsVisible = first; // ограничения пополнения — только в Примере 1
+
+        // У каждого примера свой масштаб стартовой суммы: выставляем ползунок
+        // (обработчик сам обновит подпись; перезапуск сделает SwitchDemo).
+        StartAmountSlider.Value = first ? 100_000 : 250_000;
 
         _network.IsDepositDemo = first;
         _network.Caption = string.Empty;
@@ -809,7 +823,7 @@ public partial class MainPage : ContentPage
         active.BackgroundColor = Color.FromArgb("#2b6cff");
         active.TextColor = Colors.White;
 
-        _timeline.SetWindow(preset.GapMs >= 700 ? 18000 : preset.GapMs >= 250 ? 12000 : 7000);
+        _timeline.SetWindow(preset.GapMs >= 1500 ? 30000 : preset.GapMs >= 700 ? 18000 : preset.GapMs >= 250 ? 12000 : 7000);
     }
 
     private void OnParamsToggleClicked(object? sender, EventArgs e)
@@ -830,6 +844,8 @@ public partial class MainPage : ContentPage
 
         if (_runner is { IsRunning: true })
             StartNewRun();
+        else
+            ResetVisuals();                            // карточки потоков обновляются сразу
     }
 
     private void OnLimitChanged(object? sender, ValueChangedEventArgs e)
@@ -863,6 +879,32 @@ public partial class MainPage : ContentPage
 
         if (_runner is not null)
             _runner.Options.BalanceCap = value;      // действует сразу, без перезапуска
+    }
+
+    private void OnStartAmountChanged(object? sender, ValueChangedEventArgs e)
+    {
+        int value = (int)Math.Round(e.NewValue);
+
+        if (StartAmountLabel is not null)
+        {
+            StartAmountLabel.Text = _demo == 1
+                ? $"Стартовая сумма на счёте: {value:N0} ₽"
+                : $"Стартовая сумма на счёте: {value:N0} ₽ (всего {value * 4:N0} ₽)";
+        }
+
+        // Стартовая сумма задаёт начальное состояние банка. Если демонстрация
+        // идёт — перезапускаем её; если стоит — сразу обновляем превью на схеме,
+        // чтобы новый остаток было видно без нажатия «Запустить».
+        if (_runner is { IsRunning: true })
+            StartNewRun();
+        else
+            ResetVisuals();
+    }
+
+    private void OnCeilingToggled(object? sender, ToggledEventArgs e)
+    {
+        if (_runner is not null)
+            _runner.Options.RespectCeiling = e.Value;   // действует сразу, без перезапуска
     }
 
     private void OnWorkChanged(object? sender, ValueChangedEventArgs e)
@@ -905,7 +947,7 @@ public partial class MainPage : ContentPage
             _runner.Options.GapMs = value;
 
         // окно таймлайна подстраиваем под темп: на медленном видно больше истории
-        _timeline.SetWindow(value >= 700 ? 18000 : value >= 250 ? 12000 : 7000);
+        _timeline.SetWindow(value >= 1500 ? 30000 : value >= 700 ? 18000 : value >= 250 ? 12000 : 7000);
     }
 
     private void OnPanelWorkersClicked(object? sender, EventArgs e) => ShowPanel("workers");
@@ -971,7 +1013,7 @@ public partial class MainPage : ContentPage
             Technique = _technique,
             Workers = _workers,
             Accounts = _demo == 1 ? 1 : 4,
-            Total = _demo == 1 ? 100_000 : 1_000_000,
+            Total = CurrentStartTotal(),
             MinDeposit = 100,
             MaxDeposit = 10_000,
             DepositLimit = (int)Math.Round(DepositLimitSlider.Value),
@@ -981,7 +1023,8 @@ public partial class MainPage : ContentPage
             TransferLimit = (int)Math.Round(LimitSlider.Value),
             GapMs = (int)Math.Round(GapSlider.Value),
             WorkMicroseconds = (int)Math.Round(WorkSlider.Value),
-            AggressiveConflicts = BoostSwitch.IsToggled
+            AggressiveConflicts = BoostSwitch.IsToggled,
+            RespectCeiling = CeilingSwitch.IsToggled
         };
 
         _runner = new SimulationRunner(options);
@@ -1029,10 +1072,14 @@ public partial class MainPage : ContentPage
     }
 
     /// <summary>Привести схему, показатели и журнал к исходному виду.</summary>
+    /// <summary>Общая стартовая сумма: ползунок задаёт сумму на одном счёте.</summary>
+    private int CurrentStartTotal() =>
+        (int)Math.Round(StartAmountSlider.Value) * (_demo == 1 ? 1 : 4);
+
     private void ResetVisuals()
     {
         int accounts = _demo == 1 ? 1 : 4;
-        int total = _demo == 1 ? 100_000 : 1_000_000;
+        int total = CurrentStartTotal();
 
         _network.Setup(accounts, total);
         _network.Workers = _workers;
