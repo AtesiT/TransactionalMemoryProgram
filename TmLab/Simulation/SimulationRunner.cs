@@ -105,9 +105,10 @@ public sealed class SimulationRunner
         while (_events.TryDequeue(out _)) { }
     }
 
-    private void Emit(WorkerEventKind kind, int workerId, int from, int to, int amount, int attempt = 1)
+    private void Emit(WorkerEventKind kind, int workerId, int from, int to, int amount, int attempt = 1,
+        RefusalReason reason = RefusalReason.None)
     {
-        _events.Enqueue(new WorkerEvent(kind, workerId, from, to, amount, attempt, _clock.ElapsedMilliseconds));
+        _events.Enqueue(new WorkerEvent(kind, workerId, from, to, amount, attempt, _clock.ElapsedMilliseconds, reason));
     }
 
     // -------------------------------------------------------------------------
@@ -175,7 +176,8 @@ public sealed class SimulationRunner
             Thread.SpinWait(32);
     }
 
-    private void CountOperation(WorkerEventKind kind, int workerId, int from, int to, int amount, int attempt)
+    private void CountOperation(WorkerEventKind kind, int workerId, int from, int to, int amount, int attempt,
+        RefusalReason reason = RefusalReason.None)
     {
         Interlocked.Increment(ref _operations);
         if (kind == WorkerEventKind.Commit)
@@ -183,7 +185,7 @@ public sealed class SimulationRunner
         else
             Interlocked.Increment(ref _refusals);
 
-        Emit(kind, workerId, from, to, amount, attempt);
+        Emit(kind, workerId, from, to, amount, attempt, reason);
     }
 
     // -------------------------------------------------------------------------
@@ -275,9 +277,17 @@ public sealed class SimulationRunner
         if (from == to)
             to = (to + 1) % count;
 
-        int amount = 1 + random.Next(Options.MaxTransfer);
+        int amount = Options.MinTransfer + random.Next(Options.MaxTransfer - Options.MinTransfer + 1);
 
         Emit(WorkerEventKind.OpBegin, workerId, from, to, amount);
+
+        // Потолок перевода — бизнес-правило, оно не зависит от состояния счетов,
+        // поэтому проверяется до транзакции: сумма больше потолка отклоняется сразу.
+        if (amount > Options.TransferLimit)
+        {
+            CountOperation(WorkerEventKind.Refused, workerId, from, to, amount, 1, RefusalReason.OverLimit);
+            return;
+        }
 
         switch (Options.Technique)
         {
@@ -335,7 +345,8 @@ public sealed class SimulationRunner
                 break;
 
             case TxOutcome.Refused:
-                CountOperation(WorkerEventKind.Refused, workerId, from, to, amount, result.Attempts);
+                CountOperation(WorkerEventKind.Refused, workerId, from, to, amount, result.Attempts,
+                    RefusalReason.InsufficientFunds);
                 break;
 
             case TxOutcome.Livelock:
@@ -378,7 +389,8 @@ public sealed class SimulationRunner
 
             if (balanceFrom < amount)
             {
-                CountOperation(WorkerEventKind.Refused, workerId, from, to, amount, 1);
+                CountOperation(WorkerEventKind.Refused, workerId, from, to, amount, 1,
+                    RefusalReason.InsufficientFunds);
                 return;
             }
 
@@ -411,7 +423,8 @@ public sealed class SimulationRunner
 
         if (balanceFrom < amount)
         {
-            CountOperation(WorkerEventKind.Refused, workerId, from, to, amount, 1);
+            CountOperation(WorkerEventKind.Refused, workerId, from, to, amount, 1,
+                RefusalReason.InsufficientFunds);
             return;
         }
 

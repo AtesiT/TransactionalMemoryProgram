@@ -28,13 +28,23 @@ public sealed class SimulationOptions
 
     public int Accounts { get; set; } = 1;
 
-    public int Total { get; set; } = 1000;
+    /// <summary>Общая сумма денег в демонстрации (делится между счетами поровну).</summary>
+    public int Total { get; set; } = 100_000;
 
     /// <summary>Сумма зачисления в Примере 1.</summary>
-    public int Amount { get; set; } = 10;
+    public int Amount { get; set; } = 1_000;
 
-    /// <summary>Максимальная сумма перевода в Примере 2.</summary>
-    public int MaxTransfer { get; set; } = 50;
+    /// <summary>Минимальная сумма перевода в Примере 2.</summary>
+    public int MinTransfer { get; set; } = 100;
+
+    /// <summary>Максимальная сумма перевода, которую генерирует поток в Примере 2.</summary>
+    public int MaxTransfer { get; set; } = 30_000;
+
+    /// <summary>
+    /// Потолок перевода: сумма больше этого значения отклоняется сразу, без
+    /// транзакции (бизнес-правило банка). Меняется на ходу ползунком.
+    /// </summary>
+    public int TransferLimit { get; set; } = 20_000;
 
     /// <summary>
     /// Пауза между операциями, мс: чем больше, тем спокойнее и нагляднее показ.

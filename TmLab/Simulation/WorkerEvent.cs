@@ -24,7 +24,7 @@ public enum WorkerEventKind
     /// <summary>Конфликт: транзакция откатилась и будет переиграна.</summary>
     Conflict,
 
-    /// <summary>Отказ по бизнес-причине (недостаточно средств).</summary>
+    /// <summary>Отказ по бизнес-причине (не хватает средств или превышен потолок).</summary>
     Refused,
 
     /// <summary>Счёт захвачен (режим блокировок).</summary>
@@ -40,10 +40,24 @@ public enum WorkerEventKind
     Idle
 }
 
+/// <summary>Причина отказа операции (для событий вида Refused).</summary>
+public enum RefusalReason
+{
+    /// <summary>Отказа не было.</summary>
+    None,
+
+    /// <summary>На счёте отправителя не хватает средств для перевода.</summary>
+    InsufficientFunds,
+
+    /// <summary>Сумма перевода превышает разрешённый потолок.</summary>
+    OverLimit
+}
+
 /// <summary>Одно событие потока: неизменяемая структура, безопасна для передачи между потоками.</summary>
 public readonly struct WorkerEvent
 {
-    public WorkerEvent(WorkerEventKind kind, int workerId, int from, int to, int amount, int attempt, long timeMs)
+    public WorkerEvent(WorkerEventKind kind, int workerId, int from, int to, int amount, int attempt, long timeMs,
+        RefusalReason reason = RefusalReason.None)
     {
         Kind = kind;
         WorkerId = workerId;
@@ -52,6 +66,7 @@ public readonly struct WorkerEvent
         Amount = amount;
         Attempt = attempt;
         TimeMs = timeMs;
+        Reason = reason;
     }
 
     public WorkerEventKind Kind { get; }
@@ -72,4 +87,7 @@ public readonly struct WorkerEvent
 
     /// <summary>Время от старта демонстрации, мс — для анимации и таймлайна.</summary>
     public long TimeMs { get; }
+
+    /// <summary>Причина отказа (только для событий вида Refused).</summary>
+    public RefusalReason Reason { get; }
 }

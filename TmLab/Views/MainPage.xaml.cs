@@ -343,12 +343,12 @@ public partial class MainPage : ContentPage
                 if (_demo == 1)
                 {
                     _network.Send(-1, 0, workerEvent.Amount, CoinStatus.Ok, worker);
-                    Log(worker, $"#{worker}  CompareExchange прошёл: +{workerEvent.Amount} ₽ → счёт", true);
+                    Log(worker, $"#{worker}  CompareExchange прошёл: +{workerEvent.Amount:N0} ₽ → счёт", true);
                 }
                 else
                 {
                     _network.Send(workerEvent.From, workerEvent.To, workerEvent.Amount, CoinStatus.Ok, worker);
-                    Log(worker, $"#{worker}  перевод {workerEvent.Amount} ₽: " +
+                    Log(worker, $"#{worker}  перевод {workerEvent.Amount:N0} ₽: " +
                                 $"{Letter(workerEvent.From)} → {Letter(workerEvent.To)} зафиксирован", true);
                 }
 
@@ -369,19 +369,30 @@ public partial class MainPage : ContentPage
                 else
                 {
                     _network.Send(workerEvent.From, workerEvent.To, workerEvent.Amount, CoinStatus.Conflict, worker);
-                    Log(worker, $"#{worker}  конфликт версий: перевод {workerEvent.Amount} ₽ не прошёл, откат", true);
+                    Log(worker, $"#{worker}  конфликт версий: перевод {workerEvent.Amount:N0} ₽ не прошёл, откат", true);
                 }
 
                 break;
 
             case WorkerEventKind.Refused:
                 _timeline.AttemptEnd(worker, now, true);
-                SetWorkerState(worker, "нет средств");
                 if (worker >= 0 && worker < MaxWorkers)
                     _workerOps[worker]++;
 
                 _network.Send(workerEvent.From, workerEvent.To, workerEvent.Amount, CoinStatus.Refused, worker);
-                Log(worker, $"#{worker}  отказ: недостаточно средств для {workerEvent.Amount} ₽", true);
+
+                if (workerEvent.Reason == RefusalReason.OverLimit)
+                {
+                    SetWorkerState(worker, "превышен потолок");
+                    int limit = _runner?.Options.TransferLimit ?? 0;
+                    Log(worker, $"#{worker}  отказ: перевод {workerEvent.Amount:N0} ₽ превышает потолок {limit:N0} ₽", true);
+                }
+                else
+                {
+                    SetWorkerState(worker, "нет средств");
+                    Log(worker, $"#{worker}  отказ: на счёте не хватает средств для перевода {workerEvent.Amount:N0} ₽", true);
+                }
+
                 break;
 
             case WorkerEventKind.Idle:
@@ -561,7 +572,8 @@ public partial class MainPage : ContentPage
         if (state.StartsWith("коммит", StringComparison.Ordinal))
             return Color.FromArgb("#35d07f");
         if (state.StartsWith("конфликт", StringComparison.Ordinal) ||
-            state.StartsWith("нет средств", StringComparison.Ordinal))
+            state.StartsWith("нет средств", StringComparison.Ordinal) ||
+            state.StartsWith("превышен", StringComparison.Ordinal))
             return Color.FromArgb("#ff5d6c");
         if (state.StartsWith("ожидание", StringComparison.Ordinal) ||
             state.StartsWith("счёт захвачен", StringComparison.Ordinal))
@@ -686,6 +698,7 @@ public partial class MainPage : ContentPage
             : "Зелёная монетка долетела — транзакция зафиксирована. Красная погасла на полпути — конфликт версий: транзакция откатилась и будет переиграна.";
 
         RefusalCaption.Text = first ? "Ожиданий" : "Отказов";
+        LimitBlock.IsVisible = !first;      // потолок перевода нужен только в Примере 2
 
         _network.IsDepositDemo = first;
         _network.Caption = string.Empty;
@@ -807,6 +820,17 @@ public partial class MainPage : ContentPage
             StartNewRun();
     }
 
+    private void OnLimitChanged(object? sender, ValueChangedEventArgs e)
+    {
+        int value = (int)Math.Round(e.NewValue);
+
+        if (LimitLabel is not null)
+            LimitLabel.Text = $"Потолок перевода: {value:N0} ₽ (больше — отказ)";
+
+        if (_runner is not null)
+            _runner.Options.TransferLimit = value;   // потолок действует сразу, без перезапуска
+    }
+
     private void OnWorkChanged(object? sender, ValueChangedEventArgs e)
     {
         int value = (int)Math.Round(e.NewValue);
@@ -913,9 +937,11 @@ public partial class MainPage : ContentPage
             Technique = _technique,
             Workers = _workers,
             Accounts = _demo == 1 ? 1 : 4,
-            Total = _demo == 1 ? 1000 : 10000,
-            Amount = 10,
-            MaxTransfer = 50,
+            Total = _demo == 1 ? 100_000 : 1_000_000,
+            Amount = 1_000,
+            MinTransfer = 100,
+            MaxTransfer = 30_000,
+            TransferLimit = (int)Math.Round(LimitSlider.Value),
             GapMs = (int)Math.Round(GapSlider.Value),
             WorkMicroseconds = (int)Math.Round(WorkSlider.Value),
             AggressiveConflicts = BoostSwitch.IsToggled
@@ -929,7 +955,8 @@ public partial class MainPage : ContentPage
         _paused = false;
         PauseButton.Text = "⏸ Пауза";
         StatusLabel.Text = $"{options.Workers} потоков · {DescribeTechnique(options.Technique)} · " +
-                           $"пауза {options.GapMs} мс · работа {options.WorkMicroseconds} мкс";
+                           $"пауза {options.GapMs} мс · работа {options.WorkMicroseconds} мкс" +
+                           (options.Demo == 2 ? $" · потолок {options.TransferLimit:N0} ₽" : string.Empty);
         UpdateInvariant();
     }
 
@@ -966,7 +993,7 @@ public partial class MainPage : ContentPage
     private void ResetVisuals()
     {
         int accounts = _demo == 1 ? 1 : 4;
-        int total = _demo == 1 ? 1000 : 10000;
+        int total = _demo == 1 ? 100_000 : 1_000_000;
 
         _network.Setup(accounts, total);
         _network.Workers = _workers;

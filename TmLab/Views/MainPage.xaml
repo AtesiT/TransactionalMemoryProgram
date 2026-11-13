@@ -84,6 +84,17 @@
                       MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
                       ValueChanged="OnWorkersChanged" />
 
+              <!-- потолок перевода: только для Примера 2 (видимость — в ApplyDemoUi) -->
+              <VerticalStackLayout x:Name="LimitBlock" Spacing="0" IsVisible="False">
+                <Label x:Name="LimitLabel" Text="Потолок перевода: 20 000 ₽"
+                       TextColor="#8fa3c4" FontSize="12" />
+                <Slider x:Name="LimitSlider" Minimum="5000" Maximum="50000" Value="20000"
+                        MinimumTrackColor="#2b6cff" MaximumTrackColor="#22304f"
+                        ValueChanged="OnLimitChanged" />
+                <Label Text="сумма больше потолка отклоняется сразу; переводы генерируются от 100 до 30 000 ₽"
+                       TextColor="#6d80a3" FontSize="11" />
+              </VerticalStackLayout>
+
               <HorizontalStackLayout Spacing="8">
                 <Switch x:Name="BoostSwitch" IsToggled="True" OnColor="#2b6cff" />
                 <Label Text="Агрессивные конфликты (разброс времени операции)"
