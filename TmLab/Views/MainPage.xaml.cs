@@ -134,11 +134,6 @@ public partial class MainPage : ContentPage
         SchemeSection.HeightRequest = Math.Clamp(height * (wide ? 0.46 : 0.36), 200, 520);
         PanelHost.HeightRequest = Math.Clamp(height * (wide ? 0.30 : 0.22), 130, 280);
 
-        // Панель параметров занимает оставшееся место в левой колонке: пока внизу
-        // есть свободное место, скроллить её не приходится. В узком окне (телефон)
-        // ограничения нет — там скроллится вся страница целиком.
-        ParamsPanel.MaximumHeightRequest = wide ? Math.Clamp(height - 390, 240, 1200) : -1;
-
         if (wide == _wideLayout && PageRoot.ColumnDefinitions.Count > 0)
             return;                                   // колонки уже расставлены
 

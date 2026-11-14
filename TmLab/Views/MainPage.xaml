@@ -38,16 +38,15 @@
         <!-- ===== 2. Параметры запуска (свёрнуты) ===== -->
         <VerticalStackLayout x:Name="ParamsBlock" Spacing="6">
           <Button x:Name="ParamsToggleButton"
-                  Text="▾ Параметры запуска"
+                  Text="▸ Параметры запуска"
                   Clicked="OnParamsToggleClicked"
                   BackgroundColor="#16213c" TextColor="#4ea1ff"
                   FontSize="13" CornerRadius="8" />
 
-          <!-- высота панели задаётся в ApplyAdaptiveLayout: она занимает
-               оставшееся место в левой колонке, чтобы не скроллиться внутри себя -->
-          <ScrollView x:Name="ParamsPanel">
-            <VerticalStackLayout Spacing="8">
-
+          <!-- Не вкладываем вертикальный ScrollView в PageScroll: Android
+               измеряет такую панель почти нулевой высотой. Вся страница
+               прокручивается внешним PageScroll. -->
+          <VerticalStackLayout x:Name="ParamsPanel" IsVisible="False" Spacing="8">
               <Label Text="Сценарий синхронизации" TextColor="#8fa3c4" FontSize="12" />
               <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
                 <Button x:Name="TechButtonA" Clicked="OnTechniqueAClicked"
@@ -131,8 +130,7 @@
                        TextColor="#8fa3c4" FontSize="12" VerticalOptions="Center" />
               </HorizontalStackLayout>
 
-            </VerticalStackLayout>
-          </ScrollView>
+          </VerticalStackLayout>
         </VerticalStackLayout>
 
         <!-- ===== 3. Схема: главный элемент. Высота задаётся в code-behind ===== -->
